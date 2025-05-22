@@ -1,0 +1,5 @@
+data/
+*.h5
+*.mat
+__pycache__/
+.DS_Store
