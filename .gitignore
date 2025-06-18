@@ -1,0 +1,8 @@
+# Data files
+*.pkl
+*.sigmf-data
+*.sigmf-meta
+
+# Python cache
+__pycache__/
+*.pyc
