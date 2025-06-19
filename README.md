@@ -1,4 +1,4 @@
-# RF Signal Classifier
+# RF Device Fingerprinter
 
 A machine learning framework for radio frequency signal analysis using deep learning techniques.
 
