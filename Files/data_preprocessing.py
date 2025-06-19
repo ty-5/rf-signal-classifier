@@ -3,11 +3,11 @@ import json
 import numpy as np
 import os
 from pathlib import Path
-#from sigmf import SigMFFile#
-# I dont think we need this import^
+from typing import List
 
 # should use ~ 1M spf & 512 stride
-def load_sigmf_windows(root_dir, samples_per_file=50000, window_size=1024, stride=1024):
+#Corrected to a stride of 512, using 500k samples per file for now.
+def parse_sigmf_data(root_dir, samples_per_file=500000, window_size=1024, stride=512):
     root_path = Path(root_dir)
     windows = []
 
@@ -51,19 +51,44 @@ def load_sigmf_windows(root_dir, samples_per_file=50000, window_size=1024, strid
 
     return pd.DataFrame(windows)
 
+#This function will run the parse data function for all folders in the Oracle dataset directory
+def collect_all_distances(root_dir: str, distances: List[str]) -> pd.DataFrame:
+    root = Path(root_dir)
+    all_data = []
+    #Starting from the root and our list of all the distances, which are just strings to be appended to the root file path
+    for d in distances:
+        #Append the distance folder's name to the root, skip any nonexisting folders
+        folder = root / d
+        if not folder.exists():
+            print(f"Skipping missing folder: {folder}")
+            continue
+        
+        #Parse each folder successfully
+        print(f"Parsing {folder.name}")
+        df = parse_sigmf_data(folder)
+        print(f"-> {len(df)} windows extracted")
+        #Append the data frame created for each folder to our list of dataframes
+        all_data.append(df)
+        
+    #Concatenate our list of all data into one dataframe and return it
+    return pd.concat(all_data, ignore_index=True)
+
+#This function will simply save dataframe into a pickle file
+def save_dataset(df: pd.DataFrame, out_path: str):
+    print(f"Saving {len(df)} samples to {out_path}...")
+    #Save the dataframe into a pickle file, which is a byte stream optimized for storing data
+    df.to_pickle(out_path)
+    print("Complete")
+
+distances = ["2ft", "8ft", "14ft", "20ft", "26ft", "32ft", "38ft", "44ft", "50ft", "56ft", "62ft"]
+data_directory = r"C:\Users\adamm\PROJECTS\ZuLeris\KRI-16Devices-RawData"
+
+df = collect_all_distances(data_directory, distances)
+save_dataset(df, "oracle_rf_baseline.pkl")
 
 
-df = load_sigmf_windows(r"C:\Users\tyler\OneDrive\Desktop\ZuLeris\RF-FINGERPRINTING\ORACLE\Dataset-1\2ft")
-print(df.head())
-
-print("Saving processed data...")
-df.to_pickle("rf_fingerprints_2ft.pkl")
-print("✅ Data saved successfully!")
-print("You can now use the saved data without reprocessing!")
-
-"""
 #To explore the data --
-
+'''
 print("DATASET OVERVIEW:")
 print(f"Total windows: {len(df)}")
 print(f"Unique transmitters: {df['label'].nunique()}")
@@ -76,5 +101,4 @@ print(f"Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
 print(f"Shape of first window: {len(df.iloc[0]['real'])}")
 print(f"Data type of real part: {type(df.iloc[0]['real'])}")
 print(f"Sample real values: {df.iloc[0]['real'][:5]}")
-
-"""
+'''
