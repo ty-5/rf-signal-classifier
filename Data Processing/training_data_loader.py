@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
-
 from torch.utils.data import DataLoader
 
 class OracleDataset(Dataset):
@@ -34,17 +33,19 @@ class OracleDataset(Dataset):
         return IQ_Data_tensor, label_index
     
     
+if __name__ == '__main__':
+    #Unpickle the data: convert from byte stream to pandas dataframe
+    df = pd.read_pickle(r"Data Processing/oracle_rf_baseline.pkl")
 
-#Unpickle the data: convert from byte stream to pandas dataframe
-df = pd.read_pickle(r"Data Processing/oracle_rf_baseline.pkl")
+    dataset = OracleDataset(df)
+    dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
 
-dataset = OracleDataset(df)
-dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
-
-for batch_x, batch_y in dataloader:
-    print("Batch Shape: ", batch_x.shape)
-    print("Labels: ", batch_y)
-    break;    
+    for batch_x, batch_y in dataloader:
+        #Should be in shape [batch_size, 2, window_size] 2 because we stacked two tensors, real and imaginary
+        print("Batch Shape: ", batch_x.shape)
+        #Labels are in shape [1, batch_size] which contain the indices that the labels are mapped to
+        print("Labels: ", batch_y)
+        break;    
         
 
 
