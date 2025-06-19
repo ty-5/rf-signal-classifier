@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 
 print("Loading saved RF fingerprint data...")
-df = pd.read_pickle("oracle_rf_baseline.pkl")
-#^^ specifically loading the 2ft folder due to RAM restrictions
+df = pd.read_pickle(r"Data Processing/oracle_rf_baseline.pkl")
 
 print("✅ Data loaded successfully!")
 print(f"Total windows: {len(df)}")
