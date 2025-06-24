@@ -8,6 +8,10 @@ import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix
 import time
 import os
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
+
+
 
 # Import existing classes
 from training_data_loader import OracleDataset
@@ -29,7 +33,7 @@ def train_rf_fingerprinter():
     
     # STEP 1: Load and prepare data
     print("📁 Step 1: Loading RF data...")
-    df = pd.read_pickle("rf_fingerprints_2ft_8ft.pkl")
+    df = pd.read_pickle(r"oracle_rf_baseline.pkl")
     print(f"✅ Loaded {len(df)} windows from {df['label'].nunique()} transmitters")
     
     # Create dataset
@@ -61,6 +65,7 @@ def train_rf_fingerprinter():
     # STEP 4: Create model, loss function, and optimizer
     print("🧠 Step 4: Setting up model and training components...")
     
+    
     # Model
     model = RFFingerprinter(num_transmitters=16)
     total_params = sum(p.numel() for p in model.parameters())
@@ -79,9 +84,10 @@ def train_rf_fingerprinter():
     print("🏋️ Step 5: Training the model...")
     
     # Training parameters
-    num_epochs = 10
+    num_epochs = 50
     train_losses = []
     train_accuracies = []
+    
     
     for epoch in range(num_epochs):
         model.train()  # Set model to training mode

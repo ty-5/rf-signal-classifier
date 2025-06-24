@@ -1,7 +1,7 @@
 import torch
-from torch.utils.data import Dataset
 import pandas as pd
 from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 
 class OracleDataset(Dataset):
     def __init__(self, dataframe: pd.DataFrame):
@@ -19,7 +19,7 @@ class OracleDataset(Dataset):
         row = self.df.iloc[idx] #iloc = index-location, it returns a row at that index
         
         #Convert the real and imaginary columns from the DF into tensors
-        real = torch.tensor(row['real'], dtype=torch.float32)
+        real = torch.tensor(row['real'], dtype=torch.float32) #Experiment with torch.complex128 as specified in ORACLE dataset
         imag = torch.tensor(row['imag'], dtype=torch.float32)
         
         #Stack the Interphase/Quadrature data tensors into one
@@ -35,8 +35,7 @@ class OracleDataset(Dataset):
     
 if __name__ == '__main__':
     #Unpickle the data: convert from byte stream to pandas dataframe
-    df = pd.read_pickle(r"Data Processing/oracle_rf_baseline.pkl")
-
+    df = pd.read_pickle(r"oracle_rf_baseline.pkl")
     dataset = OracleDataset(df)
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
 
