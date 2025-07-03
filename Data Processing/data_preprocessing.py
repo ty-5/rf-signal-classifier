@@ -31,12 +31,12 @@ def parse_sigmf_data(root_dir, samples_per_file=500000, window_size=1024, stride
         # Label is the transmitter ID -- extract from file name
         filename_parts = data_path.stem.split('_')
         transmitter_id = filename_parts[3]
-        label = transmitter_id
+        #label = transmitter_id
         # When we eventually use all distances at once, we can have a combined label of id + dist
         # Probably going to have to utilize batch processing for this...
 
-        #distance = data_path.parent.name#
-        #label = f"{transmitter_id}_{distance}"#
+        distance = data_path.parent.name
+        label = f"{transmitter_id}_{distance}"
 
         # Extract windows
         # Consider using a stride of 512 (50% overlap) for more training exammples
@@ -84,7 +84,7 @@ distances = ["2ft", "8ft", "14ft", "20ft", "26ft", "32ft", "38ft", "44ft", "50ft
 data_directory = r"C:\Users\adamm\PROJECTS\ZuLeris\KRI-16Devices-RawData"
 
 df = collect_all_distances(data_directory, distances)
-save_dataset(df, "oracle_rf_baseline.pkl")
+save_dataset(df, "oracle_rf_baseline2.pkl")
 
 
 #To explore the data --

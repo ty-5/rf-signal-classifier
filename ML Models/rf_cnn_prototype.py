@@ -1,3 +1,7 @@
+'''
+This file contains the rf_cnn_model, 1 dimension, 3 layers but with power normalization (scaling a signal's total energy so that it becomes a consistent value)
+and batch normalization between each of the convolutional layers
+'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -33,6 +37,8 @@ class RFFingerprinter(nn.Module):
         )
         # Output shape: [batch_size, 16, 1024]
         
+        self.batch_norm1 = nn.BatchNorm1d(16, dtype=self.datatype)
+        
         # LAYER 2: Second Convolutional Layer (Intermediate patterns)
         self.conv2 = nn.Conv1d(
             in_channels=16,     # From previous layer
@@ -44,6 +50,8 @@ class RFFingerprinter(nn.Module):
         )
         # Output shape: [batch_size, 32, 1024]
         
+        self.batch_norm2 = nn.BatchNorm1d(32, dtype=self.datatype)
+        
         # LAYER 3: Third Convolutional Layer (Complex transmitter signatures)
         self.conv3 = nn.Conv1d(
             in_channels=32,     # From previous layer
@@ -54,6 +62,8 @@ class RFFingerprinter(nn.Module):
             dtype=self.datatype
         )
         # Output shape: [batch_size, 64, 1024]
+        
+        self.batch_norm3 = nn.BatchNorm1d(64, dtype=self.datatype)
         
         # LAYER 4: Global Average Pooling
         self.global_pool = nn.AdaptiveAvgPool1d(1)
@@ -82,19 +92,26 @@ class RFFingerprinter(nn.Module):
         # Input: [batch_size, 2, 1024]
         
         # Scale up the tiny IQ values for better learning
-        x = x * 100  # Convert ~0.01 range to ~1.0 range
+        #x = x * 100  # Convert ~0.01 range to ~1.0 range
+        
+        #Power Normalization. At further distances, the IQ values will be extremely small due to attenuation, we can scale them all up with power normalization
+        power_norm = torch.norm(x, p=2, dim=(1,2), keepdim=True) + 1e-6
+        x = x / power_norm
         
         # First conv layer - Basic RF pattern detection
         x = self.conv1(x)           # -> [batch_size, 16, 1024]
         x = F.relu(x)               # Activation function
+        x = self.batch_norm1(x)
         
         # Second conv layer - Intermediate pattern combinations
         x = self.conv2(x)           # -> [batch_size, 32, 1024]
         x = F.relu(x)
+        x = self.batch_norm2(x)
         
         # Third conv layer - Complex transmitter-specific signatures
         x = self.conv3(x)           # -> [batch_size, 64, 1024]
         x = F.relu(x)
+        x = self.batch_norm3(x)
         
         # Global pooling - Average across all time samples
         x = self.global_pool(x)     # -> [batch_size, 64, 1]
@@ -107,46 +124,3 @@ class RFFingerprinter(nn.Module):
         
         return x
 
-# Test function to verify architecture
-def test_model():
-    """Test the model with dummy data to verify shapes"""
-    print("Testing RF Fingerprinter Architecture (3 Layers):")
-    print("=" * 60)
-    
-    # Create model
-    model = RFFingerprinter()
-    
-    # Create dummy input (like your real data)
-    batch_size = 32
-    dummy_input = torch.randn(batch_size, 2, 1024)  # Random IQ data
-    
-    print(f"Input shape: {dummy_input.shape}")
-    
-    # Forward pass
-    with torch.no_grad():  # Don't compute gradients for testing
-        output = model(dummy_input)
-    
-    print(f"Output shape: {output.shape}")
-    print(f"Expected output shape: [32, 16]")
-    
-    # Print model info
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"\nTotal parameters: {total_params:,}")
-    
-    # Show architecture progression
-    print(f"\nArchitecture progression:")
-    print(f"Input:  [batch, 2, 1024]")
-    print(f"Conv1:  [batch, 16, 1024] (basic patterns)")
-    print(f"Conv2:  [batch, 32, 1024] (intermediate patterns)")
-    print(f"Conv3:  [batch, 64, 1024] (complex signatures)")
-    print(f"Pool:   [batch, 64, 1]")
-    print(f"Output: [batch, 16] (transmitter scores)")
-    
-    print("\n✅ Model architecture test successful!")
-    print(f"📈 Parameter increase: {total_params:,} vs 3,360 (2-layer)")
-    
-    return model
-
-if __name__ == "__main__":
-    # Run test when file is executed
-    model = test_model()

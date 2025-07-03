@@ -2,6 +2,7 @@ import torch
 import pandas as pd
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+import configs
 
 class OracleDataset(Dataset):
     def __init__(self, dataframe: pd.DataFrame):
@@ -19,8 +20,8 @@ class OracleDataset(Dataset):
         row = self.df.iloc[idx] #iloc = index-location, it returns a row at that index
         
         #Convert the real and imaginary columns from the DF into tensors
-        real = torch.tensor(row['real'], dtype=torch.float32) #Experiment with torch.complex128 as specified in ORACLE dataset
-        imag = torch.tensor(row['imag'], dtype=torch.float32)
+        real = torch.tensor(row['real'], dtype=configs.datatype) #Experiment with torch.complex128 as specified in ORACLE dataset
+        imag = torch.tensor(row['imag'], dtype=configs.datatype)
         
         #Stack the Interphase/Quadrature data tensors into one
         IQ_Data_tensor = torch.stack([real, imag]) #shape [2, WindowSize]

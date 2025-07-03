@@ -26,7 +26,8 @@ class RFFingerprinter(nn.Module):
             out_channels=16,    # 16 feature maps (filters)
             kernel_size=7,      # Look at 7 consecutive samples
             stride=1,           # Move 1 sample at a time
-            padding=3           # Keep same length: (7-1)/2 = 3
+            padding=3,           # Keep same length: (7-1)/2 = 3
+            dtype=torch.float64
         )
         # Output shape: [batch_size, 16, 1024]
 
@@ -36,7 +37,8 @@ class RFFingerprinter(nn.Module):
             out_channels=32,    # More feature maps
             kernel_size=5,      # Smaller kernel
             stride=1,
-            padding=2           # Keep same length: (5-1)/2 = 2
+            padding=2,           # Keep same length: (5-1)/2 = 2
+            dtype=torch.float64
         )
         # Output shape: [batch_size, 32, 1024]
 
@@ -52,7 +54,8 @@ class RFFingerprinter(nn.Module):
         # LAYER 4: Output Layer (direct to classification)
         self.fc_out = nn.Linear(
             in_features=self.fc_input_size,
-            out_features=num_transmitters    # 16 transmitter classes
+            out_features=num_transmitters,   # 16 transmitter classes
+            dtype = torch.float64
         )
 
     def forward(self, x):
