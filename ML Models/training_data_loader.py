@@ -26,6 +26,11 @@ class OracleDataset(Dataset):
         #Stack the Interphase/Quadrature data tensors into one
         IQ_Data_tensor = torch.stack([real, imag]) #shape [2, WindowSize]
         
+        #Normalize each window by the mean and std computed across all values, this is a standard scalar
+        IQ_mean = IQ_Data_tensor.mean()
+        IQ_std = IQ_Data_tensor.std()
+        IQ_Data_tensor = (IQ_Data_tensor - IQ_mean) / (IQ_std + 1e-8) #Add epsilon value to avoid division by 0
+         
         #Convert the label column to indices
         label_str = row['label']
         label_index = self.label_to_index[label_str]

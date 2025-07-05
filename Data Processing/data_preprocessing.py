@@ -5,9 +5,9 @@ import os
 from pathlib import Path
 from typing import List
 
-# should use ~ 1M spf & 512 stride
-#Corrected to a stride of 512, using 500k samples per file for now.
-def parse_sigmf_data(root_dir, samples_per_file=500000, window_size=1024, stride=512):
+
+#ORACLE uses a window 128 with 50% overlap, meaning 64 stride
+def parse_sigmf_data(root_dir, samples_per_file=500000, window_size=128, stride=64):
     root_path = Path(root_dir)
     windows = []
 
@@ -31,16 +31,15 @@ def parse_sigmf_data(root_dir, samples_per_file=500000, window_size=1024, stride
         # Label is the transmitter ID -- extract from file name
         filename_parts = data_path.stem.split('_')
         transmitter_id = filename_parts[3]
-        #label = transmitter_id
+        label = transmitter_id #UNCOMMENT this if you want to train the model on just transmitters
+        
         # When we eventually use all distances at once, we can have a combined label of id + dist
         # Probably going to have to utilize batch processing for this...
 
-        distance = data_path.parent.name
-        label = f"{transmitter_id}_{distance}"
-
-        # Extract windows
-        # Consider using a stride of 512 (50% overlap) for more training exammples
-        # May keep seperate columns as complex numbers for CNN input
+        #UNCOMMENT this if you want to train the model on transmitters and their emitted distances
+        #distance = data_path.parent.name
+        #label = f"{transmitter_id}_{distance}"
+        
         for start in range(0, len(raw) - window_size + 1, stride):
             segment = raw[start:start + window_size]
             windows.append({
@@ -84,11 +83,11 @@ distances = ["2ft", "8ft", "14ft", "20ft", "26ft", "32ft", "38ft", "44ft", "50ft
 data_directory = r"C:\Users\adamm\PROJECTS\ZuLeris\KRI-16Devices-RawData"
 
 df = collect_all_distances(data_directory, distances)
-save_dataset(df, "oracle_rf_baseline2.pkl")
+save_dataset(df, "oracle_rf_ALL_DATA.pkl")
 
 
 #To explore the data --
-'''
+
 print("DATASET OVERVIEW:")
 print(f"Total windows: {len(df)}")
 print(f"Unique transmitters: {df['label'].nunique()}")
@@ -101,4 +100,3 @@ print(f"Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
 print(f"Shape of first window: {len(df.iloc[0]['real'])}")
 print(f"Data type of real part: {type(df.iloc[0]['real'])}")
 print(f"Sample real values: {df.iloc[0]['real'][:5]}")
-'''

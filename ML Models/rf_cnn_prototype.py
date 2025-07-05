@@ -24,12 +24,14 @@ class RFFingerprinter(nn.Module):
         self.input_channels = input_channels
         self.input_length = input_length
         self.datatype = configs.datatype
+        self.output_channels = [num_transmitters*2, num_transmitters*4, num_transmitters*8]
+        
         
         # LAYER 1: First Convolutional Layer (Basic pattern detection)
         # Input shape: [batch_size, 2, 1024]
         self.conv1 = nn.Conv1d(
             in_channels=2,      # I and Q channels
-            out_channels=16,    # 16 basic feature maps
+            out_channels=self.output_channels[0],    # 16 basic feature maps
             kernel_size=7,      # Look at 7 consecutive samples
             stride=1,           # Move 1 sample at a time
             padding=3,           # Keep same length
@@ -37,12 +39,12 @@ class RFFingerprinter(nn.Module):
         )
         # Output shape: [batch_size, 16, 1024]
         
-        self.batch_norm1 = nn.BatchNorm1d(16, dtype=self.datatype)
+        self.batch_norm1 = nn.BatchNorm1d(self.output_channels[0], dtype=self.datatype)
         
         # LAYER 2: Second Convolutional Layer (Intermediate patterns)
         self.conv2 = nn.Conv1d(
-            in_channels=16,     # From previous layer
-            out_channels=32,    # More feature maps
+            in_channels=self.output_channels[0],     # From previous layer
+            out_channels=self.output_channels[1],    # More feature maps
             kernel_size=5,      # Smaller kernel for finer details
             stride=1,
             padding=2,           # Keep same length
@@ -50,12 +52,12 @@ class RFFingerprinter(nn.Module):
         )
         # Output shape: [batch_size, 32, 1024]
         
-        self.batch_norm2 = nn.BatchNorm1d(32, dtype=self.datatype)
+        self.batch_norm2 = nn.BatchNorm1d(self.output_channels[1], dtype=self.datatype)
         
         # LAYER 3: Third Convolutional Layer (Complex transmitter signatures)
         self.conv3 = nn.Conv1d(
-            in_channels=32,     # From previous layer
-            out_channels=64,    # Even more feature maps for subtle differences
+            in_channels=self.output_channels[1],     # From previous layer
+            out_channels=self.output_channels[2],    # Even more feature maps for subtle differences
             kernel_size=3,      # Small kernel for fine-grained patterns
             stride=1,
             padding=1,           # Keep same length
@@ -63,14 +65,14 @@ class RFFingerprinter(nn.Module):
         )
         # Output shape: [batch_size, 64, 1024]
         
-        self.batch_norm3 = nn.BatchNorm1d(64, dtype=self.datatype)
+        self.batch_norm3 = nn.BatchNorm1d(self.output_channels[2], dtype=self.datatype)
         
         # LAYER 4: Global Average Pooling
         self.global_pool = nn.AdaptiveAvgPool1d(1)
         # Output shape: [batch_size, 64, 1]
         
         # Calculate size for fully connected layer
-        self.fc_input_size = 64
+        self.fc_input_size = self.output_channels[2]
         
         # LAYER 5: Output Layer
         self.fc_out = nn.Linear(
@@ -92,26 +94,27 @@ class RFFingerprinter(nn.Module):
         # Input: [batch_size, 2, 1024]
         
         # Scale up the tiny IQ values for better learning
-        #x = x * 100  # Convert ~0.01 range to ~1.0 range
+        x = x * 500  # Convert ~0.01 range to ~5.0 range
         
         #Power Normalization. At further distances, the IQ values will be extremely small due to attenuation, we can scale them all up with power normalization
-        power_norm = torch.norm(x, p=2, dim=(1,2), keepdim=True) + 1e-6
-        x = x / power_norm
+        #Temporarily disabled
+        #power_norm = torch.norm(x, p=2, dim=(1,2), keepdim=True) + 1e-6
+        #x = x / power_norm
         
         # First conv layer - Basic RF pattern detection
         x = self.conv1(x)           # -> [batch_size, 16, 1024]
-        x = F.relu(x)               # Activation function
         x = self.batch_norm1(x)
+        x = torch.relu(x)               # Activation function
         
         # Second conv layer - Intermediate pattern combinations
         x = self.conv2(x)           # -> [batch_size, 32, 1024]
-        x = F.relu(x)
         x = self.batch_norm2(x)
+        x = torch.relu(x)
         
         # Third conv layer - Complex transmitter-specific signatures
         x = self.conv3(x)           # -> [batch_size, 64, 1024]
-        x = F.relu(x)
         x = self.batch_norm3(x)
+        x = torch.relu(x)
         
         # Global pooling - Average across all time samples
         x = self.global_pool(x)     # -> [batch_size, 64, 1]
