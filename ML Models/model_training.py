@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 #Hyperparameters:
 BATCH_SIZE = 64
 EPOCHS = 100
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-3
 WEIGHT_DECAY=1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -96,7 +96,6 @@ def test_model(data: DataLoader, model, loss_function):
             label = label.to(device)
             
             output = model(signal)
-            print(f"Model predicts: {output}, truth is: {label}")
             current_validation_loss += loss_function(output, label).item()
             
             _, predicted_label = torch.max(output.detach(), 1)
@@ -160,7 +159,7 @@ if __name__ == "__main__":
         print("_" * 100)
     
     print("Training Complete, saving weights.")
-    torch.save(model.state_dict(), "RF_Model_Weights2.pth")
+    torch.save(model.state_dict(), "RF_Model_Weights3.pth")
     
     
     
