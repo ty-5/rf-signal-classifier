@@ -39,6 +39,7 @@ class CNNFingerprinter(nn.Module):
         )
         
         #Pooling
+        self.max_pool = nn.MaxPool1d(kernel_size=2)
         self.global_pool = nn.AdaptiveAvgPool1d(1)
         
         #First linear lyaer
@@ -74,11 +75,14 @@ class CNNFingerprinter(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = F.relu(x)
+        x = self.max_pool(x)
+        
         
         #Second convolution layer
         x = self.conv2(x)
         x = self.bn2(x)
         x = F.relu(x)
+        x = self.max_pool(x)
         
         #Pooling
         x = self.global_pool(x) #(batch, 50, 1)

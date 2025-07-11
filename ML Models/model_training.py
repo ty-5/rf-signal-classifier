@@ -3,7 +3,7 @@ import torch.nn as nn
 from training_data_loader import OracleDataset
 from torch.utils.data import DataLoader, random_split
 import pandas as pd
-from Zuleris_ORACLE_CNN import CNNFingerprinter
+from CNN_Extended import CNNFingerprinter
 import torch.optim as optim
 from torchviz import make_dot
 import time, sys
@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 
 
 #Hyperparameters:
-BATCH_SIZE = 64
+BATCH_SIZE = 64 #ORACLE uses 1024, experiment with this
 EPOCHS = 100
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY=1e-4
@@ -107,10 +107,10 @@ def test_model(data: DataLoader, model, loss_function):
 #_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________           
 #MAIN FUNCTION
 if __name__ == "__main__":
-    
+    print("Let's begin training...")
     model = CNNFingerprinter().to(device)
     loss_function = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+    optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode='min', #When the quantity stops decreasing
@@ -148,6 +148,7 @@ if __name__ == "__main__":
             min_validation_loss = current_validation_loss
             patience_counter = 0
             torch.save(model.state_dict(), "RF_Model_Weights.pth")
+            print("Validation loss improved, saving weights.")
         else:
             patience_counter += 1
             print(f"Validation Loss did not improve for {patience_counter}/{patience} epochs...")
@@ -159,7 +160,7 @@ if __name__ == "__main__":
         print("_" * 100)
     
     print("Training Complete, saving weights.")
-    torch.save(model.state_dict(), "RF_Model_Weights3.pth")
+    torch.save(model.state_dict(), "RF_Model_Weights.pth")
     
     
     

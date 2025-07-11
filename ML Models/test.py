@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-df = pd.read_pickle("oracle_rf_ALL_DATA.pkl")
+df = pd.read_pickle(r"oracle_rf_ALL_DATA.pkl")
 
-print(df.columns())
-print(df.head())
+print(df.size, df.shape)
+print(df.info(verbose=True))
