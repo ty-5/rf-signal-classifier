@@ -34,7 +34,7 @@ training_dataset = OracleDataset(train_df)
 validation_dataset = OracleDataset(validation_df)
 testing_dataset = OracleDataset(testing_df)
 
-print(f"Max label index: {max(training_dataset.label_to_index.values())}")
+#print(f"Max label index: {max(training_dataset.label_to_index.values())}")
 
 
 training_dataloader = DataLoader(training_dataset, batch_size=BATCH_SIZE, shuffle=True)
