@@ -63,11 +63,3 @@ This project builds on established research in automatic modulation classificati
 ## Contributing
 
 This is an active research project. Please coordinate with the development team before making changes.
-
-## License
-
-To be determined.
-
-## Contact
-
-Contact information to be added.
